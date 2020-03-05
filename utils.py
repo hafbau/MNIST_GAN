@@ -13,11 +13,15 @@ from torchvision import transforms, datasets
     TensorBoard Data will be stored in './runs' path
 '''
 
-def noise(size):
+def noise(size, use_cuda = None):
     '''
     Generates a 1-d vector of gaussian sampled random values
     '''
-    n = Variable(torch.randn(size, 100))
+    random = torch.randn(size, 100)
+    if use_cuda:
+        random = random.cuda()
+
+    n = Variable()
     return n
 
 def images_to_vectors(images):

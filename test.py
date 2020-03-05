@@ -7,6 +7,7 @@ from discriminator import DiscriminatorNet
 from generator import GeneratorNet
 from trainers import train_discriminator, train_generator
 
+# Hack for MNIST fetch error
 from six.moves import urllib
 opener = urllib.request.build_opener()
 opener.addheaders = [('User-agent', 'Mozilla/5.0')]
@@ -22,6 +23,11 @@ num_batches = len(data_loader)
 discriminator = DiscriminatorNet()
 generator = GeneratorNet()
 
+use_cuda = torch.cuda.is_available()
+if use_cuda:
+    discriminator.cuda()
+    generator.cuda()
+
 # Optimizers
 d_optimizer = optim.Adam(discriminator.parameters(), lr=0.0002)
 g_optimizer = optim.Adam(generator.parameters(), lr=0.0002)
@@ -30,7 +36,7 @@ g_optimizer = optim.Adam(generator.parameters(), lr=0.0002)
 loss = nn.BCELoss()
 
 num_test_samples = 16
-test_noise = noise(num_test_samples)
+test_noise = noise(num_test_samples, use_cuda)
 
 # Create logger instance
 logger = Logger(model_name='VGAN', data_name='MNIST')
@@ -40,18 +46,23 @@ num_epochs = 200
 for epoch in range(num_epochs):
     for n_batch, (real_batch,_) in enumerate(data_loader):
         N = real_batch.size(0)
+        
+        # use cuda if available
+        if use_cuda:
+            real_batch = real_batch.cuda()
+
         # 1. Train Discriminator
         real_data = Variable(images_to_vectors(real_batch))
         # Generate fake data and detach 
         # (so gradients are not calculated for generator)
-        fake_data = generator(noise(N)).detach()
+        fake_data = generator(noise(N, use_cuda)).detach()
         # Train D
         d_error, d_pred_real, d_pred_fake = \
               train_discriminator(discriminator, loss, d_optimizer, real_data, fake_data)
 
         # 2. Train Generator
         # Generate fake data
-        fake_data = generator(noise(N))
+        fake_data = generator(noise(N, use_cuda))
         # Train G
         g_error = train_generator(discriminator, loss, g_optimizer, fake_data)
         # Log batch error
