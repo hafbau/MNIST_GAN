@@ -53,7 +53,6 @@ for epoch in range(num_epochs):
         # 1. Train Discriminator
         real_data = Variable(images_to_vectors(real_batch))
         # Generate fake data and detach 
-        print('is CUDA', next(generator.parameters()).is_cuda)
         # (so gradients are not calculated for generator)
         fake_data = generator(noise(N, use_cuda)).detach()
         # Train D
@@ -70,7 +69,8 @@ for epoch in range(num_epochs):
         # Display Progress every few batches
         if (n_batch) % 100 == 0: 
             test_images = vectors_to_images(generator(test_noise))
-            test_images = test_images.data
+            # .cpu() in case if using cuda - logger converts to numpy internally; checkout utils.py
+            test_images = test_images.data.cpu()
             logger.log_images(
                 test_images, num_test_samples, 
                 epoch, n_batch, num_batches
