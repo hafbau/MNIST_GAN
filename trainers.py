@@ -6,6 +6,8 @@ def ones_target(size):
     Tensor containing ones, with shape = size
     '''
     data = Variable(torch.ones(size, 1))
+    if torch.cuda.is_available():
+        data = data.cuda()
     return data
 
 def zeros_target(size):
@@ -13,6 +15,8 @@ def zeros_target(size):
     Tensor containing zeros, with shape = size
     '''
     data = Variable(torch.zeros(size, 1))
+    if torch.cuda.is_available():
+        data = data.cuda()
     return data
 
 def train_discriminator(discriminator, loss_fn, optimizer, real_data, fake_data):

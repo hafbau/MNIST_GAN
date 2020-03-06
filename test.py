@@ -20,13 +20,12 @@ data_loader = torch.utils.data.DataLoader(data, batch_size=100, shuffle=True)
 # Num batches
 num_batches = len(data_loader)
 
-discriminator = DiscriminatorNet()
-generator = GeneratorNet()
 
 use_cuda = torch.cuda.is_available()
-if use_cuda:
-    discriminator.cuda()
-    generator.cuda()
+device = torch.device("cuda" if use_cuda else "cpu")
+discriminator = DiscriminatorNet().to(device)
+generator = GeneratorNet().to(device)
+
 
 # Optimizers
 d_optimizer = optim.Adam(discriminator.parameters(), lr=0.0002)
@@ -54,6 +53,7 @@ for epoch in range(num_epochs):
         # 1. Train Discriminator
         real_data = Variable(images_to_vectors(real_batch))
         # Generate fake data and detach 
+        print('is CUDA', next(generator.parameters()).is_cuda)
         # (so gradients are not calculated for generator)
         fake_data = generator(noise(N, use_cuda)).detach()
         # Train D
